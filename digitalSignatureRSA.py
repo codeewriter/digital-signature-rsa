@@ -20,30 +20,88 @@ def generate_rsa_keys():
 
     return (e, n), (d, n)  # public_key, private_key
 
-# Fungsi untuk enkripsi dengan private key (tanda tangan)
+# Fungsi untuk enkripsi dengan private key (tanda tangan digital)
 def encrypt_with_private_key(hash_text, private_key):
     d, n = private_key
     hash_int = int(hash_text, 16)  # Ubah hash heksadesimal ke integer
     cipher_int = pow(hash_int, d, n)  # Enkripsi hash menggunakan private key
     return cipher_int
 
-# Program utama
-if __name__ == "__main__":
-    # 1. Input dari user
-    id_surat = input("Masukkan ID Surat: ")
-    id_ketua = input("Masukkan ID Ketua: ")
-    pesan = input("Masukkan Pesan Surat: ")
+# Fungsi untuk dekripsi dengan public key (untuk verifikasi tanda tangan)
+def decrypt_with_public_key(cipher_text, public_key):
+    e, n = public_key
+    decrypted_int = pow(cipher_text, e, n)
+    return decrypted_int
 
-    # 2. Gabungkan input menjadi satu plaintext
-    plaintext = id_surat + "/" + id_ketua + "/" + pesan
+# Array untuk menyimpan surat valid
+surat_valid = []
 
-    # 3. Generate RSA keys
-    public_key, private_key = generate_rsa_keys()
+# Generate RSA keys (global untuk keperluan tanda tangan dan verifikasi)
+public_key, private_key = generate_rsa_keys()
 
-    # 4. Hash plaintext menggunakan SHA-256
-    hash_text = hash_sha256(plaintext)
-    print(f"\nHash SHA-256 dari plaintext:\n{hash_text}")
+# Program utama dengan menu
+while True:
+    print("\nMenu:")
+    print("1. Buat Surat")
+    print("2. Validasi Surat")
+    print("3. Keluar")
 
-    # 5. Enkripsi hash menggunakan private key (membuat tanda tangan digital)
-    cipher_text = encrypt_with_private_key(hash_text, private_key)
-    print(f"\nCiphertext (tanda tangan digital):\n{cipher_text}")
+    pilihan = input("Pilih menu (1/2/3): ")
+
+    if pilihan == "1":
+        id_surat = input("Masukkan ID Surat: ")
+        id_ketua = input("Masukkan ID Ketua: ")
+        pesan = input("Masukkan Pesan Surat: ")
+
+        plaintext = id_surat + "/" + id_ketua + "/" + pesan
+        hash_text = hash_sha256(plaintext)
+        cipher_text = encrypt_with_private_key(hash_text, private_key)
+
+        # Simpan ke dalam array surat_valid
+        surat_valid.append({
+            "id_surat": id_surat,
+            "id_ketua": id_ketua,
+            "pesan": pesan,
+            "hash": hash_text,
+            "cipher": cipher_text
+        })
+
+        print("\nSurat berhasil dibuat dan disimpan!")
+        print(surat_valid)
+        print(f"Hash SHA-256: {hash_text}")
+        print(f"Tanda tangan digital (cipher): {cipher_text}")
+
+    elif pilihan == "2":
+        cipher_input = int(input("Masukkan tanda tangan digital (ciphertext): "))
+
+        # Dekripsi ciphertext
+        decrypted_hash_int = decrypt_with_public_key(cipher_input, public_key)
+        decrypted_hash_hex = hex(decrypted_hash_int)[2:].zfill(64)  # ubah ke format hex
+
+        # Cek apakah hash hasil dekripsi ada di surat_valid
+        valid = False
+        for surat in surat_valid:
+            if surat["cipher"] == cipher_input:
+                print("\nSurat valid!")
+                print(f"ID Surat  : {surat['id_surat']}")
+                print(f"ID Ketua  : {surat['id_ketua']}")
+                print(f"Pesan     : {surat['pesan']}")
+                valid = True
+                break
+            # if surat["cipher"] == decrypted_hash_hex and surat["cipher"] == cipher_input:
+            #     print("\nSurat valid!")
+            #     print(f"ID Surat  : {surat['id_surat']}")
+            #     print(f"ID Ketua  : {surat['id_ketua']}")
+            #     print(f"Pesan     : {surat['pesan']}")
+            #     valid = True
+            #     break
+
+        if not valid:
+            print("\nSurat tidak valid atau belum terdaftar.")
+
+    elif pilihan == "3":
+        print("Keluar dari program.")
+        break
+
+    else:
+        print("Pilihan tidak valid. Silakan coba lagi.")
