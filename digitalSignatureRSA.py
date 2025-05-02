@@ -67,7 +67,7 @@ while True:
         })
 
         print("\nSurat berhasil dibuat dan disimpan!")
-        print(surat_valid)
+        # print(surat_valid)
         print(f"Hash SHA-256: {hash_text}")
         print(f"Tanda tangan digital (cipher): {cipher_text}")
 
@@ -75,8 +75,8 @@ while True:
         cipher_input = int(input("Masukkan tanda tangan digital (ciphertext): "))
 
         # Dekripsi ciphertext
-        decrypted_hash_int = decrypt_with_public_key(cipher_input, public_key)
-        decrypted_hash_hex = hex(decrypted_hash_int)[2:].zfill(64)  # ubah ke format hex
+        # decrypted_hash_int = decrypt_with_public_key(cipher_input, public_key)
+        # decrypted_hash_hex = hex(decrypted_hash_int)[2:].zfill(64)  # ubah ke format hex
 
         # Cek apakah hash hasil dekripsi ada di surat_valid
         valid = False
